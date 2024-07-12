@@ -14,6 +14,8 @@ class ToggleSwitchButton(QCheckBox):
         # window size
         self.box_width = 120
         self.box_height = self.box_width/2
+        # self.setWindowFlags(Qt.FramelessWindowHint)
+        # self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.resize(self.box_width, self.box_height)
 
         # bg color
@@ -21,11 +23,11 @@ class ToggleSwitchButton(QCheckBox):
         self.on_color = QColor(52, 199, 89)
 
         # circle
-        self.circle_color = QColor(229, 229, 234)
+        self.circle_color = QColor(242, 242, 247)
         self.radius_factor = 0.8
 
         # animation property
-        self.anim_curve = QEasingCurve.InOutQuad
+        self.anim_curve = QEasingCurve.OutBounce
         self.anim_duration = 300
 
         # circle animation
@@ -58,18 +60,8 @@ class ToggleSwitchButton(QCheckBox):
 
     @circle_center_x.setter
     def circle_center_x(self, center_x):
-        cur = center_x
-        end = self.anim_1.endValue()
-        perc = cur/end
-        on_center_x = max(self.width()-self.height()/2, self.width()/2)
-        off_center_x = min(self.height()/2, self.width()/2)
-
-        if self.isChecked():
-            now_center_x = perc*on_center_x
-        else:
-            now_center_x = min(perc*off_center_x, on_center_x)
-
-        self._circle_center_x = now_center_x
+        print('setter')
+        self._circle_center_x = center_x
         self.update()
 
 
@@ -108,32 +100,48 @@ class ToggleSwitchButton(QCheckBox):
 
 
 
+    # monitor window size
+    def resizeEvent(self, event):
+        # size change without animation
+        if self.anim_group.state() != QAbstractAnimation.Running:
+            if self.isChecked():
+                self._circle_center_x = max(self.width()-self.height()/2, self.width()/2)
+            else:
+                self._circle_center_x = min(self.height()/2, self.width()/2)
+
+        # size change with animation
+        else:
+            cur = self.anim_1.currentValue()
+            end = self.anim_1.endValue()
+            perc = cur/end
+            on_center_x = max(self.width()-self.height()/2, self.width()/2)
+            off_center_x = min(self.height()/2, self.width()/2)
+
+            if self.isChecked():
+                now_center_x = perc*on_center_x
+            else:
+                now_center_x = min(perc*off_center_x, on_center_x)
+
+            self._circle_center_x = now_center_x
+
+
+
     # paint
     def paintEvent(self, event):
-        state = self.isChecked()
-
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
         p.setPen(Qt.NoPen)
 
         # roundeedRect
         rect = QRectF(0, 0 , self.width(), self.height())
-        corner = float(self.height()/2)
+        corner = float(min(self.height()/2, self.width()/2))
 
-        # ellipse radius
-        radius = float(min(self.height()/2*self.radius_factor, self.width()/2*self.radius_factor))
-
-        # ellipase center
-        if self.anim_group.state() != QAbstractAnimation.Running:
-            if state:
-                self._circle_center_x = max(self.width()-self.height()/2, self.width()/2)
-            else:
-                self._circle_center_x = min(self.height()/2, self.width()/2)
-
+        # circle radius
+        radius = float(min(self.height(), self.width())/2*self.radius_factor)
         circle_center = QPointF(self._circle_center_x, self.height()/2)
 
         # start paint
-        if state:
+        if self.isChecked():
             # paint bg
             p.setBrush(self._bg_color)
             p.drawRoundedRect(rect, corner, corner)
