@@ -13,7 +13,7 @@ class ToggleSwitchButton(QCheckBox):
 
         # window size
         self.box_width = 120
-        self.box_height = self.box_width/2
+        self.box_height = self.box_width / 2
         # self.setWindowFlags(Qt.FramelessWindowHint)
         # self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.resize(self.box_width, self.box_height)
@@ -31,8 +31,8 @@ class ToggleSwitchButton(QCheckBox):
         self.anim_duration = 300
 
         # circle animation
-        self._circle_center_x = self.height()/2
-        self.anim_1 = QPropertyAnimation(self, b"circle_center_x", self)
+        self._pos_factor = 0
+        self.anim_1 = QPropertyAnimation(self, b"pos_factor", self)
         self.anim_1.setEasingCurve(self.anim_curve)
         self.anim_1.setDuration(self.anim_duration)
 
@@ -53,15 +53,14 @@ class ToggleSwitchButton(QCheckBox):
 
 
     @Property(float)
-    def circle_center_x(self):
-        return self._circle_center_x
+    def pos_factor(self):
+        return self._pos_factor
 
 
 
-    @circle_center_x.setter
-    def circle_center_x(self, center_x):
-        print('setter')
-        self._circle_center_x = center_x
+    @pos_factor.setter
+    def pos_factor(self, value):
+        self._pos_factor = value
         self.update()
 
 
@@ -87,42 +86,18 @@ class ToggleSwitchButton(QCheckBox):
 
     # start animation
     def start_anim(self, state):
+        # stop animation
         self.anim_group.stop()
 
         if state:
-            self.anim_1.setEndValue(max(self.width()-self.height()/2, self.width()/2))
+            self.anim_1.setEndValue(1)
             self.anim_2.setEndValue(self.on_color)
         else:
-            self.anim_1.setEndValue(min(self.height()/2, self.width()/2))
+            self.anim_1.setEndValue(0)
             self.anim_2.setEndValue(self.off_color)
 
+        # start animation
         self.anim_group.start()
-
-
-
-    # monitor window size
-    def resizeEvent(self, event):
-        # size change without animation
-        if self.anim_group.state() != QAbstractAnimation.Running:
-            if self.isChecked():
-                self._circle_center_x = max(self.width()-self.height()/2, self.width()/2)
-            else:
-                self._circle_center_x = min(self.height()/2, self.width()/2)
-
-        # size change with animation
-        else:
-            cur = self.anim_1.currentValue()
-            end = self.anim_1.endValue()
-            perc = cur/end
-            on_center_x = max(self.width()-self.height()/2, self.width()/2)
-            off_center_x = min(self.height()/2, self.width()/2)
-
-            if self.isChecked():
-                now_center_x = perc*on_center_x
-            else:
-                now_center_x = min(perc*off_center_x, on_center_x)
-
-            self._circle_center_x = now_center_x
 
 
 
@@ -134,31 +109,27 @@ class ToggleSwitchButton(QCheckBox):
 
         # roundeedRect
         rect = QRectF(0, 0 , self.width(), self.height())
-        corner = float(min(self.height()/2, self.width()/2))
+        corner = min(self.height() / 2, self.width() / 2)
 
         # circle radius
-        radius = float(min(self.height(), self.width())/2*self.radius_factor)
-        circle_center = QPointF(self._circle_center_x, self.height()/2)
+        radius = min(self.height(), self.width()) / 2 * self.radius_factor
 
-        # start paint
-        if self.isChecked():
-            # paint bg
-            p.setBrush(self._bg_color)
-            p.drawRoundedRect(rect, corner, corner)
+        # circle cneter x
+        lengths = max(self.width() - self.height(), 0)
+        circle_center_x = min(self.height() / 2, self.width() / 2) + lengths * self._pos_factor
 
-            # paint circle
-            p.setBrush(self.circle_color)
-            p.drawEllipse(circle_center, radius, radius)
+        # circle center
+        circle_center = QPointF(circle_center_x, self.height() / 2)
 
-        else:
-            # paint bg
-            p.setBrush(self._bg_color)
-            p.drawRoundedRect(rect, corner, corner)
+        # paint bg
+        p.setBrush(self._bg_color)
+        p.drawRoundedRect(rect, corner, corner)
 
-            # paint circle
-            p.setBrush(self.circle_color)
-            p.drawEllipse(circle_center, radius, radius)
+        # paint circle
+        p.setBrush(self.circle_color)
+        p.drawEllipse(circle_center, radius, radius)
 
+        print(circle_center, radius, lengths)
         # end paint
         p.end()
 
