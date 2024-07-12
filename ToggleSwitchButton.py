@@ -92,6 +92,7 @@ class ToggleSwitchButton(QCheckBox):
         return self.contentsRect().contains(pos)
 
 
+
     # start animation
     def start_anim(self, state):
         self.anim_group.stop()
