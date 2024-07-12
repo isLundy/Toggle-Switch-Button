@@ -1,5 +1,4 @@
 <h1 align="center"> 
-      <img src="ToggleSwitchButton.png">
-      
-      Toggle Switch Button
+      <img src="ToggleSwitchButton.png"> 
+      <p>Toggle Switch Button</p>
 </h1>
