@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QApplication, QCheckBox
 from PySide6.QtGui import QPainter, QColor, QBrush
 from PySide6.QtCore import (Qt, Property, QEasingCurve, QPropertyAnimation,
-        QPointF, QRectF, QAbstractAnimation, QParallelAnimationGroup)
+        QPointF, QRectF, QParallelAnimationGroup)
 
 import sys
 
@@ -129,7 +129,6 @@ class ToggleSwitchButton(QCheckBox):
         p.setBrush(self.circle_color)
         p.drawEllipse(circle_center, radius, radius)
 
-        print(circle_center, radius, lengths)
         # end paint
         p.end()
 
